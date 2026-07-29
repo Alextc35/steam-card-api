@@ -115,4 +115,4 @@ Use `imageMode=embedded` for GitHub README compatibility. Use `imageMode=externa
 - Monitor `/actuator/health`.
 - Keep `STEAM_LIVE_CACHE_TTL` low enough for status changes, but high enough to avoid unnecessary Steam API calls.
 - Add proxy-level rate limiting before making the API public to unknown traffic.
-- Add a `LICENSE` file before publishing as open source.
+- Publish with the MIT License file included in the repository.

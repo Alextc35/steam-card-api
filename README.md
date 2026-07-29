@@ -471,4 +471,4 @@ before opening a pull request.
 
 ## License
 
-Choose and add a license before publishing the project as open source.
+This project is open source under the [MIT License](LICENSE).

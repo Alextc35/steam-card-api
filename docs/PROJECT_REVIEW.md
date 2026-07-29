@@ -34,7 +34,6 @@ These are useful, but not blockers for publishing:
 - Add SVG snapshot tests for the showcase layout. Existing string tests protect behavior, but snapshots would catch accidental visual markup shifts.
 - Add OpenAPI documentation for JSON endpoints.
 - Add optional proxy or application rate limiting before broad public traffic.
-- Add a license before open-sourcing.
 
 ## Release Checklist
 
@@ -46,4 +45,5 @@ These are useful, but not blockers for publishing:
 - The public hostname uses HTTPS.
 - The Steam API key is configured as a secret, not committed and not baked into the image.
 - README embed URLs use the final public hostname.
+- The MIT License file is included before publication.
 - A backend-capable host is selected for the API; Hostinger Website Builder alone should only embed the public SVG URL.
