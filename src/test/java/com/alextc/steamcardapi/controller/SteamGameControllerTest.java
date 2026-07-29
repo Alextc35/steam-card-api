@@ -29,7 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(SteamGameController.class)
@@ -38,22 +38,22 @@ class SteamGameControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private SteamRequestValidator requestValidator;
 
-    @MockBean
+    @MockitoBean
     private SteamGameService gameService;
 
-    @MockBean
+    @MockitoBean
     private SteamImageService imageService;
 
-    @MockBean
+    @MockitoBean
     private SteamStoreApiClient storeApiClient;
 
-    @MockBean
+    @MockitoBean
     private SteamGameCardRenderer gameCardRenderer;
 
-    @MockBean
+    @MockitoBean
     private SteamCardService cardService;
 
     private SteamGame game;
@@ -82,7 +82,7 @@ class SteamGameControllerTest {
         when(imageService.renderableGameImageUrl(eq(game.images()), eq(GameImageType.AUTO), eq(game.name()), eq(730),
                 eq(SvgTheme.GITHUB_DARK), eq(CardImageMode.EMBEDDED))).thenReturn("data:image/png;base64,COVER");
         when(gameCardRenderer.render(eq(game), eq(SvgTheme.GITHUB_DARK), eq(SvgLayout.SHOWCASE),
-                any(), eq("data:image/png;base64,COVER"))).thenReturn("<svg>game</svg>");
+                any(), eq("data:image/png;base64,COVER"), eq("en"))).thenReturn("<svg>game</svg>");
         when(cardService.svg("<svg>game</svg>")).thenReturn(svgResource("<svg>game</svg>", "\"game\""));
 
         mockMvc.perform(get("/api/steam/game/730/card.svg"))

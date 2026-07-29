@@ -19,7 +19,8 @@ It can render profile cards, game cards, and resolved Steam artwork from a Steam
 - Inline SVG country flag badges for the top 100 Steam country codes, with ISO text fallback.
 - Game JSON and game SVG cards based on Steam Store metadata and deterministic Steam image URLs.
 - Cover endpoint for portrait, header, hero, icon, logo, and small capsule images.
-- Configurable themes, layouts, accent color, sections, border style, image mode, and artwork strategy.
+- Configurable themes, layouts, accent color, border style, image mode, and artwork strategy.
+- Localized Steam Store metadata and SVG labels for `en`, `es`, `fr`, and `de`.
 - Embedded image mode for better GitHub README compatibility.
 - External image mode for smaller SVGs.
 - Caffeine caches for profile data, library data, Store data, image resolution, embedded images, and rendered card data.
@@ -189,6 +190,7 @@ The `showcase` layout is optimized for personal profile embeds:
 - `ONLINE` uses the Steam blue palette.
 - `OFFLINE` uses a red badge and shows `Last session` below the status.
 - When a game is active, the game eyebrow reads `Currently playing`.
+- The `minimal` layout only shows the game title while the profile is in-game.
 - If no recent or owned game is available, the cover area renders a local SVG placeholder instead of an empty panel.
 
 Supported flag country codes:
@@ -250,33 +252,12 @@ curl "http://localhost:8080/api/steam/stats?vanity=Alextc35"
 | `steamId` | 15 to 20 digits |
 | `vanity` | Letters, digits, underscore, hyphen |
 | `theme` | `dark`, `light`, `steam`, `dracula`, `nord`, `github-dark`, `github-light` |
-| `layout` | `compact`, `normal`, `showcase`, `hero`, `minimal`, `library` |
+| `layout` | `compact`, `normal`, `showcase`, `hero`, `minimal` |
 | `gameImage` | `none`, `icon`, `header`, `portrait`, `hero`, `logo`, `small`, `auto` |
 | `imageMode` | `embedded`, `external` |
 | `border` | `rounded`, `square`, `none` |
-| `animation` | `true`, `false` |
-| `lang` | `es`, `en`, `fr`, `de` |
+| `lang` | `es`, `en`, `fr`, `de`; localizes Steam Store metadata and SVG labels |
 | `accent` | Six hex characters, for example `66c0f4` |
-| `show` | Comma-separated sections |
-
-Supported `show` sections:
-
-- `avatar`
-- `status`
-- `level`
-- `friends`
-- `library`
-- `accountAge`
-- `country`
-- `currentGame`
-- `recentGames`
-- `favoriteGame`
-- `achievements`
-- `hours`
-- `cover`
-- `gameIcon`
-- `genres`
-- `releaseDate`
 
 All parameters are length-limited and parsed against strict allowlists. CSS, XML, URLs, and arbitrary user-controlled content are not accepted as styling input.
 
@@ -318,7 +299,6 @@ Primary image strategy:
 - `showcase`: portrait cover
 - `hero`: hero image
 - `minimal`: no large image
-- `library`: small images
 
 Fallback strategy:
 

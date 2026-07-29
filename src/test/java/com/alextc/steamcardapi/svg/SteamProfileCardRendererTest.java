@@ -126,6 +126,207 @@ class SteamProfileCardRendererTest {
     }
 
     @Test
+    void profileLayoutsRenderCountryFlagBesideName() {
+        assertThat(renderer.render(TestFixtures.cardData(SvgLayout.COMPACT, SvgTheme.GITHUB_DARK)))
+                .contains("y=\"28\" width=\"26\" height=\"18\"")
+                .doesNotContain("y=\"63\" width=\"26\" height=\"18\"");
+        assertThat(renderer.render(TestFixtures.cardData(SvgLayout.NORMAL, SvgTheme.GITHUB_DARK)))
+                .contains("y=\"32\" width=\"26\" height=\"18\"")
+                .doesNotContain("y=\"66\" width=\"26\" height=\"18\"");
+        assertThat(renderer.render(TestFixtures.cardData(SvgLayout.HERO, SvgTheme.GITHUB_DARK)))
+                .contains("y=\"39\" width=\"26\" height=\"18\"")
+                .doesNotContain("y=\"71\" width=\"26\" height=\"18\"");
+        assertThat(renderer.render(TestFixtures.cardData(SvgLayout.MINIMAL, SvgTheme.GITHUB_DARK)))
+                .contains("y=\"30\" width=\"26\" height=\"18\"")
+                .doesNotContain("y=\"62\" width=\"26\" height=\"18\"");
+    }
+
+    @Test
+    void normalLayoutPlacesReleaseDateUnderCoverAndUsesCountryFlag() {
+        String svg = renderer.render(TestFixtures.cardData(SvgLayout.NORMAL, SvgTheme.GITHUB_DARK));
+
+        assertThat(svg)
+                .contains("<text x=\"448\" y=\"158\" text-anchor=\"middle\" font-size=\"11\"")
+                .contains(">Aug 21, 2012</text>")
+                .contains("<text x=\"34\" y=\"144\" font-size=\"11\"")
+                .contains("Level 42 · Library 120 · Friends 12")
+                .contains("aria-label=\"ES\"")
+                .contains("#aa151b")
+                .contains("#f1bf00")
+                .contains("<a href=\"https://alextc.es\"")
+                .doesNotContain(">ES</text>")
+                .doesNotContain("Steam Card API")
+                .doesNotContain("Last session")
+                .doesNotContain("Level 42 · 12 friends · 120 games")
+                .doesNotContain("<text x=\"146\" y=\"112\" font-size=\"13\"")
+                .doesNotContain(" · Aug 21, 2012");
+    }
+
+    @Test
+    void profileLayoutsUseFlagBadgesAndDoNotRenderApiFooterBranding() {
+        for (SvgLayout layout : SvgLayout.values()) {
+            String svg = renderer.render(TestFixtures.cardData(layout, SvgTheme.GITHUB_DARK));
+
+            assertThat(svg)
+                    .describedAs(layout.value())
+                    .contains("aria-label=\"ES\"")
+                    .contains("#aa151b")
+                    .contains("#f1bf00")
+                    .doesNotContain(">ES</text>")
+                    .doesNotContain("Steam Card API");
+        }
+    }
+
+    @Test
+    void normalLayoutShowsLastSessionUnderOfflineBadgeOnly() {
+        SteamCardData online = TestFixtures.cardData(SvgLayout.NORMAL, SvgTheme.GITHUB_DARK);
+        SteamCardData offline = withStatus(online, "Offline", false);
+
+        String onlineSvg = renderer.render(online);
+        String offlineSvg = renderer.render(offline);
+
+        assertThat(onlineSvg).doesNotContain("Last session");
+        assertThat(offlineSvg)
+                .contains("Last session Mar 9, 2024")
+                .contains("<text x=\"146\" y=\"100\" font-size=\"10\"")
+                .doesNotContain(" · Last session");
+    }
+
+    @Test
+    void compactLayoutShowsOnlyLastSessionUnderOfflineBadge() {
+        SteamCardData online = TestFixtures.cardData(SvgLayout.COMPACT, SvgTheme.GITHUB_DARK);
+        SteamCardData offline = withStatus(online, "Offline", false);
+
+        String onlineSvg = renderer.render(online);
+        String offlineSvg = renderer.render(offline);
+
+        assertThat(onlineSvg).doesNotContain("Last session");
+        assertThat(offlineSvg)
+                .contains("Last session Mar 9, 2024")
+                .contains("<text x=\"140\" y=\"95\" font-size=\"10\"")
+                .doesNotContain("Level 42")
+                .doesNotContain("Library 120")
+                .doesNotContain("Friends 12")
+                .doesNotContain(" · Last session");
+    }
+
+    @Test
+    void heroLayoutPlacesReleaseDateInFooterAndOfflineLastSessionUnderBadge() {
+        SteamCardData online = TestFixtures.cardData(SvgLayout.HERO, SvgTheme.GITHUB_DARK);
+        SteamCardData offline = withStatus(online, "Offline", false);
+        SteamCardData playing = TestFixtures.cardData(SvgLayout.HERO, SvgTheme.GITHUB_DARK,
+                TestFixtures.game(730, "Counter <Strike> 2", 600, true));
+
+        String onlineSvg = renderer.render(online);
+        String offlineSvg = renderer.render(offline);
+        String playingSvg = renderer.render(playing);
+
+        assertThat(onlineSvg)
+                .containsPattern("(?s)<a href=\"https://store\\.steampowered\\.com/app/730\"[^>]*>\\s*<text x=\"42\" y=\"187\"")
+                .contains("<text x=\"42\" y=\"256\" font-size=\"11\"")
+                .contains(">Aug 21, 2012</text>")
+                .contains("<text x=\"674\" y=\"256\" text-anchor=\"end\" font-size=\"11\"")
+                .contains("<text x=\"42\" y=\"219\" font-size=\"15\"")
+                .contains(">Total 10.0 h · 2 weeks 1.5 h</text>")
+                .doesNotContain("Last session")
+                .doesNotContain("Live on Steam")
+                .doesNotContain("y=\"179\" font-size=\"11\"")
+                .doesNotContain(">- Aug 21, 2012</text>")
+                .doesNotContain(" · Aug 21, 2012")
+                .doesNotContain(" · Last session")
+                .doesNotContain("<text x=\"42\" y=\"211\" font-size=\"11\"");
+        assertThat(offlineSvg)
+                .contains("Last session Mar 9, 2024")
+                .contains("<text x=\"126\" y=\"105\" font-size=\"10\"");
+        assertThat(playingSvg)
+                .contains(">Currently playing<")
+                .doesNotContain("Live on Steam");
+    }
+
+    @Test
+    void minimalLayoutOnlyShowsGameTitleWhenInGame() {
+        SteamCardData online = TestFixtures.cardData(SvgLayout.MINIMAL, SvgTheme.GITHUB_DARK);
+        SteamCardData offline = withStatus(online, "Offline", false);
+        SteamCardData playing = TestFixtures.cardData(SvgLayout.MINIMAL, SvgTheme.GITHUB_DARK,
+                TestFixtures.game(730, "Counter <Strike> 2", 600, true));
+
+        String onlineSvg = renderer.render(online);
+        String offlineSvg = renderer.render(offline);
+        String playingSvg = renderer.render(playing);
+
+        assertThat(onlineSvg)
+                .contains("<a href=\"https://alextc.es\"")
+                .doesNotContain("<text x=\"116\" y=\"112\"")
+                .doesNotContain("https://store.steampowered.com/app/730")
+                .doesNotContain("Last session");
+        assertThat(offlineSvg)
+                .contains("<a href=\"https://alextc.es\"")
+                .contains("Last session Mar 9, 2024")
+                .contains("<text x=\"116\" y=\"98\" font-size=\"10\"")
+                .doesNotContain("<text x=\"116\" y=\"112\"")
+                .doesNotContain("https://store.steampowered.com/app/730");
+        assertThat(playingSvg)
+                .contains("<a href=\"https://alextc.es\"")
+                .contains(">In-game<")
+                .containsPattern("(?s)<a href=\"https://store\\.steampowered\\.com/app/730\"[^>]*>\\s*<text x=\"116\" y=\"112\"")
+                .contains("Counter &lt;Strike&gt; 2")
+                .doesNotContain("Last session");
+    }
+
+    @Test
+    void localizesProfileLabelsWithRequestedLanguage() {
+        SteamCardData showcase = withLocale(TestFixtures.cardData(SvgLayout.SHOWCASE, SvgTheme.GITHUB_DARK), "es");
+        SteamCardData online = withLocale(TestFixtures.cardData(SvgLayout.MINIMAL, SvgTheme.GITHUB_DARK), "es");
+        SteamCardData playing = withLocale(TestFixtures.cardData(SvgLayout.HERO, SvgTheme.GITHUB_DARK,
+                TestFixtures.game(730, "Counter <Strike> 2", 600, true)), "es");
+        SteamCardData offline = withLocale(withStatus(TestFixtures.cardData(SvgLayout.MINIMAL, SvgTheme.GITHUB_DARK),
+                "Offline", false), "es");
+
+        String showcaseSvg = renderer.render(showcase);
+        String onlineSvg = renderer.render(online);
+        String playingSvg = renderer.render(playing);
+        String offlineSvg = renderer.render(offline);
+
+        assertThat(showcaseSvg)
+                .contains(">Último juego<")
+                .contains("Nivel 42 · Biblioteca 120 · Amigos 12")
+                .contains("Total 10.0 h · 2 semanas 1.5 h")
+                .contains("Tiempo total jugado en las últimas 2 semanas 1.5 h")
+                .doesNotContain(">Last played<")
+                .doesNotContain("Level 42 · Library 120 · Friends 12")
+                .doesNotContain("2 weeks");
+        assertThat(onlineSvg)
+                .contains(">EN LÍNEA<")
+                .doesNotContain(">EN LINEA<")
+                .doesNotContain(">ONLINE<");
+        assertThat(playingSvg)
+                .contains(">Jugando ahora<")
+                .contains(">EN JUEGO<")
+                .doesNotContain(">Currently playing<")
+                .doesNotContain(">In-game<");
+        assertThat(offlineSvg)
+                .contains("Última sesión")
+                .contains("2024")
+                .contains(">DESCONECTADO<")
+                .contains("<rect x=\"116\" y=\"60\" width=\"119\" height=\"22\"")
+                .doesNotContain("Last session")
+                .doesNotContain(">OFFLINE<");
+    }
+
+    @Test
+    void nonPlayingGameEyebrowSaysLastPlayed() {
+        for (SvgLayout layout : new SvgLayout[] {SvgLayout.COMPACT, SvgLayout.NORMAL, SvgLayout.SHOWCASE, SvgLayout.HERO}) {
+            String svg = renderer.render(TestFixtures.cardData(layout, SvgTheme.GITHUB_DARK));
+
+            assertThat(svg)
+                    .describedAs(layout.value())
+                    .contains(">Last played<")
+                    .doesNotContain("Featured game")
+                    .doesNotContain("Featured Steam game");
+        }
+    }
+
+    @Test
     void showcaseRendersSupportedCountryFlagsBeyondSpain() {
         SteamCardData data = withCountryCode(TestFixtures.cardData(SvgLayout.SHOWCASE, SvgTheme.GITHUB_DARK), "AR");
 
@@ -167,7 +368,8 @@ class SteamProfileCardRendererTest {
         String svg = renderer.render(TestFixtures.cardData(SvgLayout.SHOWCASE, SvgTheme.GITHUB_DARK));
 
         assertThat(svg)
-                .containsPattern("(?s)<a href=\"https://store\\.steampowered\\.com/app/730\"[^>]*>\\s*<image href=\"data:image/png;base64,COVER\"");
+                .containsPattern("(?s)<a href=\"https://store\\.steampowered\\.com/app/730\"[^>]*>\\s*<image href=\"data:image/png;base64,COVER\"")
+                .containsPattern("(?s)<a href=\"https://store\\.steampowered\\.com/app/730\"[^>]*>\\s*<text x=\"216\" y=\"164\"");
     }
 
     private SteamCardData withStatus(SteamCardData data, String status, boolean currentlyPlaying) {
@@ -196,7 +398,6 @@ class SteamProfileCardRendererTest {
                 data.layout(),
                 data.locale(),
                 data.accent(),
-                data.show(),
                 data.border(),
                 data.resolvedImages(),
                 data.renderedAvatarUrl(),
@@ -229,7 +430,24 @@ class SteamProfileCardRendererTest {
                 data.layout(),
                 data.locale(),
                 data.accent(),
-                data.show(),
+                data.border(),
+                data.resolvedImages(),
+                data.renderedAvatarUrl(),
+                data.renderedPrimaryImageUrl());
+    }
+
+    private SteamCardData withLocale(SteamCardData data, String locale) {
+        return new SteamCardData(
+                data.profile(),
+                data.selectedGame(),
+                data.recentGames(),
+                data.favoriteGames(),
+                data.statistics(),
+                data.librarySummary(),
+                data.theme(),
+                data.layout(),
+                locale,
+                data.accent(),
                 data.border(),
                 data.resolvedImages(),
                 data.renderedAvatarUrl(),
@@ -248,7 +466,6 @@ class SteamProfileCardRendererTest {
                 data.layout(),
                 data.locale(),
                 data.accent(),
-                data.show(),
                 data.border(),
                 data.resolvedImages(),
                 data.renderedAvatarUrl(),
@@ -289,7 +506,6 @@ class SteamProfileCardRendererTest {
                 data.layout(),
                 data.locale(),
                 data.accent(),
-                data.show(),
                 data.border(),
                 data.resolvedImages(),
                 data.renderedAvatarUrl(),

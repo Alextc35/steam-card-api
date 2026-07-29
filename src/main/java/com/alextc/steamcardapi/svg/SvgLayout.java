@@ -8,8 +8,7 @@ public enum SvgLayout {
     NORMAL("normal", 600, 230),
     SHOWCASE("showcase", 700, 300),
     HERO("hero", 700, 270),
-    MINIMAL("minimal", 500, 150),
-    LIBRARY("library", 700, 330);
+    MINIMAL("minimal", 500, 150);
 
     private final String value;
     private final int width;
@@ -39,6 +38,6 @@ public enum SvgLayout {
                 .filter(layout -> layout.value.equals(normalized))
                 .findFirst()
                 .orElseThrow(() -> new InvalidCardParameterException(
-                        "layout must be one of compact, normal, showcase, hero, minimal, library"));
+                        "layout must be one of compact, normal, showcase, hero, minimal"));
     }
 }

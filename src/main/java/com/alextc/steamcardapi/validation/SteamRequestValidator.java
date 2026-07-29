@@ -5,7 +5,6 @@ import com.alextc.steamcardapi.exception.InvalidCardParameterException;
 import com.alextc.steamcardapi.model.BorderStyle;
 import com.alextc.steamcardapi.model.CardImageMode;
 import com.alextc.steamcardapi.model.GameImageType;
-import com.alextc.steamcardapi.model.ShowSection;
 import com.alextc.steamcardapi.model.SteamCardRequest;
 import com.alextc.steamcardapi.model.SteamSubject;
 import com.alextc.steamcardapi.svg.SvgLayout;
@@ -64,10 +63,8 @@ public class SteamRequestValidator {
             String layout,
             String lang,
             String accent,
-            String show,
             String imageMode,
             String gameImage,
-            Boolean animation,
             String border
     ) {
         return new SteamCardRequest(
@@ -76,10 +73,8 @@ public class SteamRequestValidator {
                 SvgLayout.parse(limit(layout, "layout", 24)),
                 language(lang),
                 HexColorValidator.validate(limit(accent, "accent", 6)),
-                ShowSection.parse(limit(show, "show", 240)),
                 CardImageMode.parse(limit(imageMode, "imageMode", 16)),
                 GameImageType.parse(limit(gameImage, "gameImage", 16)),
-                animation != null && animation,
                 BorderStyle.parse(limit(border, "border", 16)));
     }
 

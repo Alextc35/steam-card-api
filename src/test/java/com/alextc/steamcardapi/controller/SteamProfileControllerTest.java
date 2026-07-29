@@ -24,7 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(SteamProfileController.class)
@@ -33,16 +33,16 @@ class SteamProfileControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private SteamRequestValidator requestValidator;
 
-    @MockBean
+    @MockitoBean
     private SteamProfileService profileService;
 
-    @MockBean
+    @MockitoBean
     private SteamProfileCardRenderer profileCardRenderer;
 
-    @MockBean
+    @MockitoBean
     private SteamCardService cardService;
 
     private SteamCardRequest request;
@@ -52,7 +52,7 @@ class SteamProfileControllerTest {
     void setUp() {
         request = TestFixtures.request();
         data = TestFixtures.cardData(request.layout(), request.theme());
-        when(requestValidator.cardRequest(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+        when(requestValidator.cardRequest(any(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenReturn(request);
     }
 
@@ -94,7 +94,7 @@ class SteamProfileControllerTest {
 
     @Test
     void rejectsInvalidParametersWithJsonError() throws Exception {
-        when(requestValidator.cardRequest(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+        when(requestValidator.cardRequest(any(), any(), any(), any(), any(), any(), any(), any(), any()))
                 .thenThrow(new InvalidCardParameterException("theme must be valid"));
 
         mockMvc.perform(get("/api/steam/card.svg").param("theme", "<script>"))

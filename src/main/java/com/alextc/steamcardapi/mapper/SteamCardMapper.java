@@ -37,7 +37,6 @@ public class SteamCardMapper {
                 request.layout(),
                 request.locale(),
                 request.accent(),
-                request.show(),
                 request.border(),
                 resolvedImages,
                 renderedAvatarUrl,

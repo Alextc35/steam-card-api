@@ -15,7 +15,6 @@ public record SteamCardData(
         SvgLayout layout,
         String locale,
         String accent,
-        java.util.Set<ShowSection> show,
         BorderStyle border,
         SteamGameImages resolvedImages,
         String renderedAvatarUrl,

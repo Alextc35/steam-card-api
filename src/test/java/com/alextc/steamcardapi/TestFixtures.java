@@ -4,7 +4,6 @@ import com.alextc.steamcardapi.config.SteamProperties;
 import com.alextc.steamcardapi.model.BorderStyle;
 import com.alextc.steamcardapi.model.CardImageMode;
 import com.alextc.steamcardapi.model.GameImageType;
-import com.alextc.steamcardapi.model.ShowSection;
 import com.alextc.steamcardapi.model.SteamCardData;
 import com.alextc.steamcardapi.model.SteamCardRequest;
 import com.alextc.steamcardapi.model.SteamGame;
@@ -18,9 +17,7 @@ import com.alextc.steamcardapi.svg.SvgLayout;
 import com.alextc.steamcardapi.svg.SvgTheme;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.Set;
 
 public final class TestFixtures {
 
@@ -53,10 +50,8 @@ public final class TestFixtures {
                 layout,
                 "en",
                 null,
-                allSections(),
                 CardImageMode.EMBEDDED,
                 imageType,
-                false,
                 BorderStyle.ROUNDED);
     }
 
@@ -132,14 +127,9 @@ public final class TestFixtures {
                 layout,
                 "en",
                 null,
-                allSections(),
                 BorderStyle.ROUNDED,
                 images(),
                 "data:image/png;base64,AVATAR",
                 "data:image/png;base64,COVER");
-    }
-
-    public static Set<ShowSection> allSections() {
-        return EnumSet.allOf(ShowSection.class);
     }
 }

@@ -1,23 +1,16 @@
 package com.alextc.steamcardapi.svg;
 
 import com.alextc.steamcardapi.model.BorderStyle;
-import com.alextc.steamcardapi.model.ShowSection;
 import com.alextc.steamcardapi.model.SteamCardData;
 import com.alextc.steamcardapi.model.SteamGame;
 import com.alextc.steamcardapi.model.SteamStatistics;
 import java.time.Instant;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SteamProfileCardRenderer {
 
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter
-            .ofPattern("MMM d, yyyy", Locale.ENGLISH)
-            .withZone(ZoneOffset.UTC);
     private static final String STEAM_ONLINE_BLUE = "#66c0f4";
     private static final String STEAM_IN_GAME_GREEN = "#90ba3c";
 
@@ -28,7 +21,6 @@ public class SteamProfileCardRenderer {
             case SHOWCASE -> renderShowcase(data);
             case HERO -> renderHero(data);
             case MINIMAL -> renderMinimal(data);
-            case LIBRARY -> renderLibrary(data);
         };
     }
 
@@ -56,9 +48,9 @@ public class SteamProfileCardRenderer {
 
     private String renderCompact(SteamCardData data) {
         SvgTheme.Palette palette = data.theme().palette(data.accent());
+        SvgLabels labels = labels(data);
         String id = id(data);
         SteamGame game = data.selectedGame();
-        String gameName = game == null ? "No game available" : game.name();
         return """
                 <svg xmlns="http://www.w3.org/2000/svg" width="500" height="170" viewBox="0 0 500 170" role="img" aria-labelledby="%s-title %s-desc">
                   %s
@@ -72,28 +64,32 @@ public class SteamProfileCardRenderer {
                   %s
                   %s
                   %s
-                  <text x="238" y="76" font-size="13" fill="%s">%s</text>
-                  <text x="140" y="105" font-size="12" font-weight="700" fill="%s">%s</text>
-                  <text x="140" y="129" font-size="18" font-weight="700" fill="%s">%s</text>
-                  <text x="140" y="151" font-size="13" fill="%s">%s</text>
+                  %s
+                  %s
+                  <text x="140" y="113" font-size="12" font-weight="700" fill="%s">%s</text>
+                  %s
+                  <text x="140" y="158" font-size="13" fill="%s">%s</text>
                   %s
                 </svg>
                 """.formatted(
                 id, id,
-                title(data, id), desc(data, id), id, id,
+                title(data, id, labels), desc(data, id, labels), id, id,
                 frame(500, 170, data.border(), palette),
                 avatar(data, id, 26, 26, 92, 92),
                 primaryImage(data, palette, 376, 24, 88, 88, id + "-game"),
                 profileName(data, 140, 46, 24, 23, palette.primaryText()),
-                statusBadge(data, palette, 140, 61, 88), palette.secondaryText(), countryText(data),
-                palette.accent(), game == null || !game.currentlyPlaying() ? "Last played" : "Currently playing",
-                palette.primaryText(), text(gameName, 30),
-                palette.secondaryText(), hours(game),
-                footer(500, 158, palette));
+                statusBadge(data, labels, 140, 61, 88),
+                countryBadgeAfterName(data, palette, 140, 28, 24, 23, 338),
+                lastSessionUnderStatus(data, labels, palette, 140, 95),
+                palette.accent(), isPlaying(data) ? labels.currentlyPlaying() : labels.lastPlayed(),
+                gameTitle(data, labels, 140, 136, 18, 30, palette.primaryText()),
+                palette.secondaryText(), hours(game, labels),
+                footerLink(500, 158, palette));
     }
 
     private String renderNormal(SteamCardData data) {
         SvgTheme.Palette palette = data.theme().palette(data.accent());
+        SvgLabels labels = labels(data);
         String id = id(data);
         SteamGame game = data.selectedGame();
         return """
@@ -110,31 +106,38 @@ public class SteamProfileCardRenderer {
                   %s
                   %s
                   %s
-                  <text x="246" y="79" font-size="13" fill="%s">%s</text>
-                  <text x="146" y="112" font-size="13" fill="%s">Level %s · %s friends · %s games</text>
+                  %s
+                  %s
+                  <text x="448" y="158" text-anchor="middle" font-size="11" fill="%s">%s</text>
+                  <text x="34" y="144" font-size="11" fill="%s">%s %s · %s %s · %s %s</text>
                   <text x="34" y="160" font-size="12" font-weight="700" fill="%s">%s</text>
-                  <text x="34" y="186" font-size="21" font-weight="700" fill="%s">%s</text>
+                  %s
                   <text x="34" y="208" font-size="13" fill="%s">%s</text>
                   %s
                 </svg>
                 """.formatted(
                 id, id,
-                title(data, id), desc(data, id), id, id,
+                title(data, id, labels), desc(data, id, labels), id, id,
                 frame(600, 230, data.border(), palette),
                 avatar(data, id, 32, 32, 92, 92),
                 palette.panel(),
                 primaryImage(data, palette, 330, 24, 236, 110, id + "-header"),
                 profileName(data, 146, 51, 25, 26, palette.primaryText()),
-                statusBadge(data, palette, 146, 64, 88), palette.secondaryText(), countryText(data),
-                palette.mutedText(), number(data.profile().steamLevel()), number(data.profile().friendCount()), number(data.profile().gameCount()),
-                palette.accent(), game == null || !game.currentlyPlaying() ? "Featured game" : "Currently playing",
-                palette.primaryText(), text(game == null ? "No game available" : game.name(), 42),
-                palette.secondaryText(), gameMeta(game),
-                footer(600, 218, palette));
+                statusBadge(data, labels, 146, 64, 88),
+                countryBadgeAfterName(data, palette, 146, 32, 25, 26, 286),
+                lastSessionUnderStatus(data, labels, palette, 146, 100),
+                palette.mutedText(), releaseDate(game),
+                palette.mutedText(), labels.level(), number(data.profile().steamLevel()),
+                labels.library(), number(data.profile().gameCount()), labels.friends(), number(data.profile().friendCount()),
+                palette.accent(), isPlaying(data) ? labels.currentlyPlaying() : labels.lastPlayed(),
+                gameTitle(data, labels, 34, 186, 21, 42, palette.primaryText()),
+                palette.secondaryText(), hours(game, labels),
+                footerLink(600, 218, palette));
     }
 
     private String renderShowcase(SteamCardData data) {
         SvgTheme.Palette palette = data.theme().palette(data.accent());
+        SvgLabels labels = labels(data);
         String id = id(data);
         SteamGame game = data.selectedGame();
         return """
@@ -155,34 +158,36 @@ public class SteamProfileCardRenderer {
                   %s
                   %s
                   <text x="216" y="134" font-size="13" font-weight="700" fill="%s">%s</text>
-                  <text x="216" y="164" font-size="28" font-weight="700" fill="%s">%s</text>
+                  %s
                   <text x="216" y="193" font-size="14" fill="%s">%s</text>
-                  <text x="216" y="228" font-size="14" fill="%s">Level %s · Library %s · Friends %s</text>
+                  <text x="216" y="228" font-size="14" fill="%s">%s %s · %s %s · %s %s</text>
                   <text x="216" y="253" font-size="13" fill="%s">%s</text>
                   %s
                 </svg>
                 """.formatted(
                 id, id,
-                title(data, id), desc(data, id), id, id,
+                title(data, id, labels), desc(data, id, labels), id, id,
                 frame(700, 300, data.border(), palette),
                 palette.panel(),
                 primaryImage(data, palette, 26, 24, 156, 234, id + "-cover"),
                 palette.mutedText(), releaseDate(game),
                 avatar(data, id, 206, 36, 68, 68),
                 profileName(data, 292, 55, 27, 26, palette.primaryText()),
-                countryBadgeAfterName(data, palette, 292, 36, 27, 26),
-                statusBadge(data, 292, 64, 88),
-                lastSessionUnderStatus(data, palette, 292, 102),
-                palette.accent(), game == null || !game.currentlyPlaying() ? "Last played" : "Currently playing",
-                palette.primaryText(), text(game == null ? "No game available" : game.name(), 33),
-                palette.secondaryText(), game == null ? "No playtime data" : hours(game),
-                palette.secondaryText(), number(data.profile().steamLevel()), number(data.profile().gameCount()), number(data.profile().friendCount()),
-                palette.mutedText(), showcaseMeta(data),
-                showcaseFooter(700, 286, palette));
+                countryBadgeAfterName(data, palette, 292, 36, 27, 26, 646),
+                statusBadge(data, labels, 292, 64, 88),
+                lastSessionUnderStatus(data, labels, palette, 292, 102),
+                palette.accent(), isPlaying(data) ? labels.currentlyPlaying() : labels.lastPlayed(),
+                gameTitle(data, labels, 216, 164, 28, 33, palette.primaryText()),
+                palette.secondaryText(), game == null ? labels.noPlaytimeData() : hours(game, labels),
+                palette.secondaryText(), labels.level(), number(data.profile().steamLevel()),
+                labels.library(), number(data.profile().gameCount()), labels.friends(), number(data.profile().friendCount()),
+                palette.mutedText(), showcaseMeta(data, labels),
+                footerLink(700, 286, palette));
     }
 
     private String renderHero(SteamCardData data) {
         SvgTheme.Palette palette = data.theme().palette(data.accent());
+        SvgLabels labels = labels(data);
         String id = id(data);
         SteamGame game = data.selectedGame();
         return """
@@ -204,32 +209,37 @@ public class SteamProfileCardRenderer {
                   %s
                   %s
                   %s
-                  <text x="226" y="85" font-size="13" fill="%s">%s</text>
+                  %s
+                  %s
                   <text x="42" y="152" font-size="13" font-weight="700" fill="%s">%s</text>
-                  <text x="42" y="187" font-size="31" font-weight="700" fill="%s">%s</text>
+                  %s
                   <text x="42" y="219" font-size="15" fill="%s">%s</text>
+                  %s
                   %s
                 </svg>
                 """.formatted(
                 id, id,
-                title(data, id), desc(data, id), id, data.border().radius(), id, id,
+                title(data, id, labels), desc(data, id, labels), id, data.border().radius(), id, id,
                 palette.background(), palette.background(), palette.background(),
                 data.border().radius(), palette.background(),
                 primaryImage(data, palette, 0, 0, 700, 270, id + "-card"),
                 data.border().radius(), id,
                 avatar(data, id, 32, 34, 76, 76),
                 profileName(data, 126, 58, 27, 28, palette.primaryText()),
-                statusBadge(data, palette, 126, 69, 88), palette.secondaryText(), countryText(data),
-                palette.accent(), game == null || !game.currentlyPlaying() ? "Featured Steam game" : "Live on Steam",
-                palette.primaryText(), text(game == null ? "No game available" : game.name(), 34),
-                palette.secondaryText(), gameMeta(game),
-                footer(700, 256, palette));
+                statusBadge(data, labels, 126, 69, 88),
+                countryBadgeAfterName(data, palette, 126, 39, 27, 28, 646),
+                lastSessionUnderStatus(data, labels, palette, 126, 105),
+                palette.accent(), isPlaying(data) ? labels.currentlyPlaying() : labels.lastPlayed(),
+                gameTitle(data, labels, 42, 187, 31, 26, palette.primaryText()),
+                palette.secondaryText(), hours(game, labels),
+                releaseDateFooter(game, palette, 42, 256),
+                footerLink(700, 256, palette));
     }
 
     private String renderMinimal(SteamCardData data) {
         SvgTheme.Palette palette = data.theme().palette(data.accent());
+        SvgLabels labels = labels(data);
         String id = id(data);
-        SteamGame game = data.selectedGame();
         return """
                 <svg xmlns="http://www.w3.org/2000/svg" width="500" height="150" viewBox="0 0 500 150" role="img" aria-labelledby="%s-title %s-desc">
                   %s
@@ -239,68 +249,28 @@ public class SteamProfileCardRenderer {
                   %s
                   %s
                   %s
-                  <text x="216" y="76" font-size="13" fill="%s">%s</text>
-                  <text x="116" y="112" font-size="18" font-weight="700" fill="%s">%s</text>
+                  %s
+                  %s
+                  %s
+                  %s
                 </svg>
-                """.formatted(id, id, title(data, id), desc(data, id), id,
+                """.formatted(id, id, title(data, id, labels), desc(data, id, labels), id,
                 frame(500, 150, data.border(), palette), avatar(data, id, 27, 27, 68, 68),
                 profileName(data, 116, 48, 23, 25, palette.primaryText()),
-                statusBadge(data, palette, 116, 60, 88), palette.secondaryText(), countryText(data),
-                palette.primaryText(), text(game == null ? "No game available" : game.name(), 34));
+                statusBadge(data, labels, 116, 60, 88),
+                countryBadgeAfterName(data, palette, 116, 30, 23, 25, 460),
+                lastSessionUnderStatus(data, labels, palette, 116, 98),
+                minimalGameTitle(data, labels, palette),
+                footerLink(500, 138, palette));
     }
 
-    private String renderLibrary(SteamCardData data) {
-        SvgTheme.Palette palette = data.theme().palette(data.accent());
-        String id = id(data);
-        StringBuilder rows = new StringBuilder();
-        int y = 156;
-        int max = data.recentGames().stream()
-                .mapToInt(game -> game.playtimeForeverMinutes() == null ? 0 : game.playtimeForeverMinutes())
-                .max()
-                .orElse(1);
-        for (SteamGame game : data.recentGames()) {
-            int barWidth = Math.max(24, (int) Math.round((game.playtimeForeverMinutes() == null ? 0 : game.playtimeForeverMinutes()) / (double) max * 220));
-            rows.append("""
-                      <text x="52" y="%d" font-size="14" fill="%s">%s</text>
-                      <rect x="330" y="%d" width="%d" height="10" rx="5" fill="%s"/>
-                      <text x="570" y="%d" text-anchor="end" font-size="12" fill="%s">%.1f h</text>
-                    """.formatted(y, palette.primaryText(), text(game.name(), 32), y - 9, barWidth,
-                    palette.accent(), y, palette.secondaryText(), game.hoursForever()));
-            y += 36;
-        }
-        return """
-                <svg xmlns="http://www.w3.org/2000/svg" width="700" height="330" viewBox="0 0 700 330" role="img" aria-labelledby="%s-title %s-desc">
-                  %s
-                  %s
-                  <defs><clipPath id="%s-avatar"><circle cx="68" cy="68" r="38"/></clipPath></defs>
-                  %s
-                  %s
-                  %s
-                  %s
-                  <text x="226" y="82" font-size="13" fill="%s">%s</text>
-                  <text x="52" y="126" font-size="13" font-weight="700" fill="%s">Recent library activity</text>
-                  %s
-                  <text x="52" y="296" font-size="13" fill="%s">Most played: %s</text>
-                  %s
-                </svg>
-                """.formatted(id, id, title(data, id), desc(data, id), id,
-                frame(700, 330, data.border(), palette), avatar(data, id, 30, 30, 76, 76),
-                profileName(data, 126, 56, 27, 26, palette.primaryText()),
-                statusBadge(data, palette, 126, 66, 88), palette.secondaryText(), countryText(data),
-                palette.accent(), rows,
-                palette.secondaryText(), text(data.librarySummary() == null || data.librarySummary().mostPlayedGame() == null
-                        ? "Unavailable"
-                        : data.librarySummary().mostPlayedGame().name(), 36),
-                footer(700, 318, palette));
+    private String title(SteamCardData data, String id, SvgLabels labels) {
+        return "<title id=\"%s-title\">%s</title>"
+                .formatted(id, SvgTextUtils.escape(labels.profileCardTitle(data.profile().nickname())));
     }
 
-    private String title(SteamCardData data, String id) {
-        return "<title id=\"%s-title\">Steam profile card for %s</title>"
-                .formatted(id, SvgTextUtils.escape(data.profile().nickname()));
-    }
-
-    private String desc(SteamCardData data, String id) {
-        String gameName = data.selectedGame() == null ? "no game selected" : data.selectedGame().name();
+    private String desc(SteamCardData data, String id, SvgLabels labels) {
+        String gameName = data.selectedGame() == null ? labels.noGameSelected() : data.selectedGame().name();
         return "<desc id=\"%s-desc\">%s, %s</desc>"
                 .formatted(id, SvgTextUtils.escape(data.profile().status()), SvgTextUtils.escape(gameName));
     }
@@ -319,9 +289,6 @@ public class SteamProfileCardRenderer {
     }
 
     private String avatar(SteamCardData data, String id, int x, int y, int size, int size2) {
-        if (!data.show().contains(ShowSection.AVATAR)) {
-            return "";
-        }
         return profileLink(data, SvgImageUtils.image(data.renderedAvatarUrl(), x, y, size, size2, id + "-avatar"));
     }
 
@@ -334,9 +301,10 @@ public class SteamProfileCardRenderer {
     }
 
     private String gameImagePlaceholder(SteamCardData data, SvgTheme.Palette palette, int x, int y, int width, int height, String clipPathId) {
+        SvgLabels labels = labels(data);
         boolean gameMissing = data.selectedGame() == null;
-        String title = gameMissing ? "No game found" : "Cover not found";
-        String detail = gameMissing ? "No public recent game data" : text(data.selectedGame().name(), 28);
+        String title = gameMissing ? labels.noGameFound() : labels.coverNotFound();
+        String detail = gameMissing ? labels.noPublicRecentGameData() : text(data.selectedGame().name(), 28);
         String clip = clipPathId == null || clipPathId.isBlank() ? "" : " clip-path=\"url(#%s)\"".formatted(clipPathId);
         int centerX = x + width / 2;
         int centerY = y + height / 2;
@@ -375,6 +343,17 @@ public class SteamProfileCardRenderer {
         return profileLink(data, name);
     }
 
+    private String gameTitle(SteamCardData data, SvgLabels labels, int x, int y, int fontSize, int maxCodePoints, String fill) {
+        String title = """
+                <text x="%d" y="%d" font-size="%d" font-weight="700" fill="%s">%s</text>
+                """.formatted(x, y, fontSize, fill, text(gameName(data.selectedGame(), labels), maxCodePoints));
+        return gameStoreLink(data, title);
+    }
+
+    private String minimalGameTitle(SteamCardData data, SvgLabels labels, SvgTheme.Palette palette) {
+        return isPlaying(data) ? gameTitle(data, labels, 116, 112, 18, 34, palette.primaryText()) : "";
+    }
+
     private String profileLink(SteamCardData data, String content) {
         String profileUrl = data.profile().profileUrl();
         if (profileUrl == null || profileUrl.isBlank() || content.isBlank()) {
@@ -399,26 +378,19 @@ public class SteamProfileCardRenderer {
                 """.formatted(game.appId(), content);
     }
 
-    private String statusBadge(SteamCardData data, SvgTheme.Palette palette, int x, int y, int width) {
-        return statusBadge(data, x, y, width);
-    }
-
-    private String statusBadge(SteamCardData data, int x, int y, int width) {
+    private String statusBadge(SteamCardData data, SvgLabels labels, int x, int y, int width) {
         boolean playing = isPlaying(data);
         boolean online = isOnline(data);
         String fill = playing ? STEAM_IN_GAME_GREEN : online ? STEAM_ONLINE_BLUE : offlineColor();
-        String label = playing ? "In-game" : online ? "ONLINE" : "OFFLINE";
+        String label = labels.status(playing, online);
+        int badgeWidth = Math.max(width, estimatedTextWidth(label, 10) + 52);
         return """
                 <g>
                   <rect x="%d" y="%d" width="%d" height="22" rx="11" fill="%s"/>
                   <circle cx="%d" cy="%d" r="4" fill="#ffffff" opacity="0.9"/>
                   <text x="%d" y="%d" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">%s</text>
                 </g>
-                """.formatted(x, y, width, fill, x + 14, y + 11, x + width / 2 + 7, y + 15, label);
-    }
-
-    private String countryText(SteamCardData data) {
-        return data.profile().countryCode() == null ? "" : text(data.profile().countryCode(), 8);
+                """.formatted(x, y, badgeWidth, fill, x + 14, y + 11, x + badgeWidth / 2 + 7, y + 15, label);
     }
 
     private String countryBadge(SteamCardData data, SvgTheme.Palette palette, int x, int y) {
@@ -434,33 +406,25 @@ public class SteamProfileCardRenderer {
                 .formatted(x, y + 14, palette.secondaryText(), text(countryCode, 8));
     }
 
-    private String countryBadgeAfterName(SteamCardData data, SvgTheme.Palette palette, int textX, int y, int fontSize, int maxCodePoints) {
+    private String countryBadgeAfterName(SteamCardData data, SvgTheme.Palette palette, int textX, int y,
+            int fontSize, int maxCodePoints, int maxX) {
         String displayName = SvgTextUtils.truncate(SvgTextUtils.text(data.profile().nickname(), "Unknown"), maxCodePoints);
-        int x = Math.min(646, textX + estimatedTextWidth(displayName, fontSize) + 14);
+        int x = Math.min(maxX, textX + estimatedTextWidth(displayName, fontSize) + 14);
         return countryBadge(data, palette, x, y);
     }
 
-    private String gameMeta(SteamGame game) {
-        if (game == null) {
-            return "No Steam game data available";
-        }
-        String release = game.releaseDate() == null ? "" : " · " + game.releaseDate();
-        String last = game.lastPlayedAt() == null ? "" : " · Last session " + date(game.lastPlayedAt());
-        return "%s%s%s".formatted(hours(game), release, last);
+    private String showcaseMeta(SteamCardData data, SvgLabels labels) {
+        return libraryRecentHours(data.statistics(), labels);
     }
 
-    private String showcaseMeta(SteamCardData data) {
-        return libraryRecentHours(data.statistics());
-    }
-
-    private String libraryRecentHours(SteamStatistics statistics) {
+    private String libraryRecentHours(SteamStatistics statistics, SvgLabels labels) {
         if (statistics == null || statistics.recentPlaytimeMinutes() == null) {
             return "";
         }
-        return "Total playtime in the last 2 weeks %.1f h".formatted(minutesToHours(statistics.recentPlaytimeMinutes()));
+        return labels.totalPlaytimeLastTwoWeeks(minutesToHours(statistics.recentPlaytimeMinutes()));
     }
 
-    private String lastSession(SteamCardData data) {
+    private String lastSession(SteamCardData data, SvgLabels labels) {
         SteamGame game = data.selectedGame();
         if (isOnline(data)) {
             return "";
@@ -468,11 +432,11 @@ public class SteamProfileCardRenderer {
         Instant lastSessionAt = game != null && game.lastPlayedAt() != null
                 ? game.lastPlayedAt()
                 : data.profile().lastOnlineAt();
-        return lastSessionAt == null ? "" : "Last session " + date(lastSessionAt);
+        return lastSessionAt == null ? "" : labels.lastSession(date(lastSessionAt, labels));
     }
 
-    private String lastSessionUnderStatus(SteamCardData data, SvgTheme.Palette palette, int x, int y) {
-        String lastSession = lastSession(data);
+    private String lastSessionUnderStatus(SteamCardData data, SvgLabels labels, SvgTheme.Palette palette, int x, int y) {
+        String lastSession = lastSession(data, labels);
         if (lastSession.isBlank()) {
             return "";
         }
@@ -484,22 +448,20 @@ public class SteamProfileCardRenderer {
         return game == null || game.releaseDate() == null ? "" : text(game.releaseDate(), 24);
     }
 
-    private String hours(SteamGame game) {
-        if (game == null) {
-            return "No playtime data";
+    private String releaseDateFooter(SteamGame game, SvgTheme.Palette palette, int x, int y) {
+        String release = releaseDate(game);
+        if (release.isBlank()) {
+            return "";
         }
-        return "Total %.1f h · 2 weeks %.1f h".formatted(game.hoursForever(), game.hoursLastTwoWeeks());
+        return "<text x=\"%d\" y=\"%d\" font-size=\"11\" fill=\"%s\">%s</text>"
+                .formatted(x, y, palette.mutedText(), release);
     }
 
-    private String footer(int width, int y, SvgTheme.Palette palette) {
-        return """
-                <text x="26" y="%d" font-size="11" fill="%s">Steam Card API</text>
-                %s
-                """.formatted(y, palette.mutedText(), footerLink(width, y, palette));
-    }
-
-    private String showcaseFooter(int width, int y, SvgTheme.Palette palette) {
-        return footerLink(width, y, palette);
+    private String hours(SteamGame game, SvgLabels labels) {
+        if (game == null) {
+            return labels.noPlaytimeData();
+        }
+        return labels.gameHours(game.hoursForever(), game.hoursLastTwoWeeks());
     }
 
     private String footerLink(int width, int y, SvgTheme.Palette palette) {
@@ -528,12 +490,16 @@ public class SteamProfileCardRenderer {
         return SvgTextUtils.escape(SvgTextUtils.truncate(SvgTextUtils.text(value, "Unknown"), maxCodePoints));
     }
 
+    private String gameName(SteamGame game, SvgLabels labels) {
+        return game == null ? labels.noGameAvailable() : game.name();
+    }
+
     private String number(Integer value) {
         return value == null ? "?" : String.valueOf(value);
     }
 
-    private String date(Instant instant) {
-        return DATE_FORMATTER.format(instant);
+    private String date(Instant instant, SvgLabels labels) {
+        return labels.date(instant);
     }
 
     private double minutesToHours(Integer minutes) {
@@ -572,5 +538,9 @@ public class SteamProfileCardRenderer {
 
     private String id(Object... values) {
         return "steam-card-" + Integer.toHexString(Objects.hash(values)).replace("-", "x");
+    }
+
+    private SvgLabels labels(SteamCardData data) {
+        return SvgLabels.forLocale(data.locale());
     }
 }

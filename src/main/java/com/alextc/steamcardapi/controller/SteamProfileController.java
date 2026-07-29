@@ -50,7 +50,7 @@ public class SteamProfileController {
             @RequestParam(required = false) String lang
     ) {
         SteamCardRequest request = requestValidator.cardRequest(
-                steamId, vanity, null, "showcase", lang, null, null, "external", "auto", false, "rounded");
+                steamId, vanity, null, "showcase", lang, null, "external", "auto", "rounded");
         return steamProfileService.getProfileData(request);
     }
 
@@ -83,15 +83,13 @@ public class SteamProfileController {
             @RequestParam(required = false) String layout,
             @RequestParam(required = false) String lang,
             @RequestParam(required = false) String accent,
-            @RequestParam(required = false) String show,
             @RequestParam(required = false) String imageMode,
             @RequestParam(required = false) String gameImage,
-            @RequestParam(required = false) Boolean animation,
             @RequestParam(required = false) String border,
             @RequestHeader(value = HttpHeaders.IF_NONE_MATCH, required = false) String ifNoneMatch
     ) {
         SteamCardRequest request = requestValidator.cardRequest(steamId, vanity, theme, layout, lang,
-                accent, show, imageMode, gameImage, animation, border);
+                accent, imageMode, gameImage, border);
         try {
             RenderedHttpResource resource = steamCardService.svg(profileCardRenderer.render(
                     steamProfileService.getCardData(request)));

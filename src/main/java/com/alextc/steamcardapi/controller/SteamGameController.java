@@ -71,7 +71,8 @@ public class SteamGameController {
         GameImageType parsedImage = GameImageType.parse(gameImage);
         CardImageMode parsedMode = CardImageMode.parse(imageMode);
         BorderStyle parsedBorder = BorderStyle.parse(border);
-        SteamGame game = steamGameService.getGame(parsedAppId, requestValidator.language(lang), parsedLayout, parsedImage);
+        String parsedLanguage = requestValidator.language(lang);
+        SteamGame game = steamGameService.getGame(parsedAppId, parsedLanguage, parsedLayout, parsedImage);
         String renderedImage = steamImageService.renderableGameImageUrl(
                 game.images(),
                 parsedImage,
@@ -80,7 +81,7 @@ public class SteamGameController {
                 parsedTheme,
                 parsedMode);
         RenderedHttpResource resource = steamCardService.svg(gameCardRenderer.render(
-                game, parsedTheme, parsedLayout, parsedBorder, renderedImage));
+                game, parsedTheme, parsedLayout, parsedBorder, renderedImage, parsedLanguage));
         return HttpResourceResponses.cacheable(resource, ifNoneMatch, 300);
     }
 

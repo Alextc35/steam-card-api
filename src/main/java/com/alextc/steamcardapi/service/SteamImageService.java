@@ -226,7 +226,6 @@ public class SteamImageService {
             case SHOWCASE -> GameImageType.PORTRAIT;
             case HERO -> GameImageType.HERO;
             case MINIMAL -> GameImageType.NONE;
-            case LIBRARY -> GameImageType.SMALL;
         } : requested;
         return switch (effective) {
             case NONE -> null;
