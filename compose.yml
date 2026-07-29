@@ -1,0 +1,20 @@
+services:
+  api:
+    image: maven:3.9.11-eclipse-temurin-21
+    working_dir: /workspace
+    command: >
+      sh -c 'if [ -x ./mvnw ]; then ./mvnw spring-boot:run; else mvn spring-boot:run; fi'
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      MAVEN_OPTS: "-Dmaven.repo.local=/root/.m2/repository"
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/workspace
+      - maven-cache:/root/.m2
+
+volumes:
+  maven-cache:

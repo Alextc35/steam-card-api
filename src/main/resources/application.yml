@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: steam-card-api
+  cache:
+    type: caffeine
+  devtools:
+    restart:
+      enabled: true
+
+server:
+  error:
+    include-message: never
+    include-stacktrace: never
+    include-binding-errors: never
+
+steam:
+  api-key: ${STEAM_API_KEY}
+  default-vanity: ${STEAM_DEFAULT_VANITY:${STEAM_VANITY_URL:}}
+  default-id: ${STEAM_DEFAULT_ID:}
+  cache-ttl: ${STEAM_CACHE_TTL:PT5M}
+  live-cache-ttl: ${STEAM_LIVE_CACHE_TTL:PT15S}
+  image-cache-ttl: ${STEAM_IMAGE_CACHE_TTL:PT1H}
+  http-connect-timeout: ${STEAM_HTTP_CONNECT_TIMEOUT:PT5S}
+  http-read-timeout: ${STEAM_HTTP_READ_TIMEOUT:PT10S}
+  max-embedded-image-bytes: ${STEAM_MAX_EMBEDDED_IMAGE_BYTES:1048576}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+  info:
+    env:
+      enabled: false
