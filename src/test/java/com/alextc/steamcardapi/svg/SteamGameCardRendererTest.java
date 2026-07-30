@@ -12,7 +12,7 @@ class SteamGameCardRendererTest {
     private final SteamGameCardRenderer renderer = new SteamGameCardRenderer();
 
     @Test
-    void generatesGameCardWithCoverAppIdHoursAndMetadata() {
+    void generatesGameCardWithCoverAppIdAndMetadata() {
         SteamGame game = TestFixtures.game(730, "Counter-Strike 2", 600, false);
 
         String svg = renderer.render(game, SvgTheme.GITHUB_DARK, SvgLayout.SHOWCASE,
@@ -21,7 +21,8 @@ class SteamGameCardRendererTest {
         assertThat(svg).startsWith("<svg");
         assertThat(svg).contains("Steam game · AppID 730");
         assertThat(svg).contains("Counter-Strike 2");
-        assertThat(svg).contains("10.0 h played");
+        assertThat(svg).contains("Free to play · Aug 21, 2012");
+        assertThat(svg).doesNotContain("h played");
         assertThat(svg).contains("Free to play");
         assertThat(svg).contains(game.images().portraitCoverUrl());
         assertThat(svg).contains("<clipPath");
@@ -50,10 +51,11 @@ class SteamGameCardRendererTest {
 
         assertThat(svg)
                 .contains("Juego de Steam · AppID 730")
-                .contains("10.0 h jugadas")
                 .contains("Gratis")
+                .contains("Gratis · Aug 21, 2012")
                 .doesNotContain("Steam game · AppID 730")
-                .doesNotContain("10.0 h played")
+                .doesNotContain("h played")
+                .doesNotContain("h jugadas")
                 .doesNotContain("Free to play");
     }
 }

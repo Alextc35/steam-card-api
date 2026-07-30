@@ -32,8 +32,7 @@ public record SvgLabels(
         String steamGameMetadata,
         String freeToPlay,
         String priceUnavailable,
-        String releaseUnavailable,
-        String hoursPlayed
+        String releaseUnavailable
 ) {
 
     public static SvgLabels forLocale(String locale) {
@@ -65,8 +64,7 @@ public record SvgLabels(
                     "Metadatos del juego",
                     "Gratis",
                     "Precio no disponible",
-                    "Fecha no disponible",
-                    "%.1f h jugadas");
+                    "Fecha no disponible");
             case "fr" -> new SvgLabels(
                     "d MMM, yyyy",
                     Locale.forLanguageTag("fr"),
@@ -94,8 +92,7 @@ public record SvgLabels(
                     "Métadonnées du jeu",
                     "Gratuit",
                     "Prix indisponible",
-                    "Date indisponible",
-                    "%.1f h jouées");
+                    "Date indisponible");
             case "de" -> new SvgLabels(
                     "d MMM, yyyy",
                     Locale.forLanguageTag("de"),
@@ -123,8 +120,7 @@ public record SvgLabels(
                     "Spielmetadaten",
                     "Kostenlos",
                     "Preis nicht verfügbar",
-                    "Datum nicht verfügbar",
-                    "%.1f h gespielt");
+                    "Datum nicht verfügbar");
             default -> new SvgLabels(
                     "MMM d, yyyy",
                     Locale.ENGLISH,
@@ -152,8 +148,7 @@ public record SvgLabels(
                     "Steam game metadata",
                     "Free to play",
                     "Price unavailable",
-                    "Release unavailable",
-                    "%.1f h played");
+                    "Release unavailable");
         };
     }
 
@@ -182,10 +177,6 @@ public record SvgLabels(
 
     public String lastSession(String date) {
         return "%s %s".formatted(lastSession, date);
-    }
-
-    public String hoursPlayed(double hours) {
-        return hoursPlayed.formatted(hours);
     }
 
     public String date(Instant instant) {

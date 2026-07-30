@@ -70,6 +70,6 @@ public class SteamGameCardRenderer {
     private String meta(SteamGame game, SvgLabels labels) {
         String price = game.freeToPlay() ? labels.freeToPlay() : game.price() == null ? labels.priceUnavailable() : game.price();
         String release = game.releaseDate() == null ? labels.releaseUnavailable() : game.releaseDate();
-        return "%s · %s · %s".formatted(price, release, labels.hoursPlayed(game.hoursForever()));
+        return "%s · %s".formatted(price, release);
     }
 }
