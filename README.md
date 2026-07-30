@@ -9,6 +9,13 @@ It can render profile cards, game cards, and resolved Steam artwork from a Steam
 <img src="https://example.com/api/steam/game/730/card.svg?layout=hero&gameImage=hero" alt="Steam game card">
 ```
 
+## Examples
+### Card Layout Hero
+![layout-hero](images/card-layout-hero.svg)
+
+### Dark Card Layout Showcase
+![layout-showcase](images/card-layout-showcase.svg)
+
 ## Features
 
 - Profile JSON with nickname, avatar, status, level, friends, country, library size, and playtime data.
