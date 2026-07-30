@@ -16,6 +16,7 @@ It can render profile cards, game cards, and resolved Steam artwork from a Steam
 - Steam-like status badges: blue online, green in-game, red offline.
 - Linked profile avatar and profile name in SVG cards when Steam provides a profile URL.
 - Linked game artwork in profile SVG cards when Steam provides a game AppID.
+- Compact profile cards fit wide game thumbnails without cropping important artwork.
 - Inline SVG country flag badges for the top 100 Steam country codes, with ISO text fallback.
 - Game JSON and game SVG cards based on Steam Store metadata and deterministic Steam image URLs.
 - Cover endpoint for portrait, header, hero, icon, logo, and small capsule images.
@@ -180,17 +181,18 @@ X-Content-Type-Options: nosniff
 
 `If-None-Match` is supported for SVG and cover responses.
 
-The `showcase` layout is optimized for personal profile embeds:
+Profile SVG card layouts include:
 
 - Avatar and profile name link to the Steam profile URL.
 - Country codes from the supported top 100 list render as small inline SVG flag badges; unsupported codes fall back to text.
 - The main game artwork links to `https://store.steampowered.com/app/{appId}` when a game is available.
 - The footer `alextc.es` label links to `https://alextc.es`.
-- `In-game` uses a Steam-style green badge.
+- `IN-GAME` uses a Steam-style green badge.
 - `ONLINE` uses the Steam blue palette.
 - `OFFLINE` uses a red badge and shows `Last session` below the status.
 - When a game is active, the game eyebrow reads `Currently playing`.
-- The `minimal` layout only shows the game title while the profile is in-game.
+- The `compact` layout uses a wide fitted thumbnail for small capsules and headers.
+- The `minimal` layout uses larger profile/status elements and only shows the game title while the profile is in-game.
 - If no recent or owned game is available, the cover area renders a local SVG placeholder instead of an empty panel.
 
 Supported flag country codes:
@@ -294,7 +296,7 @@ https://media.steampowered.com/steamcommunity/public/images/apps/{appid}/{img_ic
 
 Primary image strategy:
 
-- `compact`: small capsule or icon
+- `compact`: fitted small capsule or header thumbnail
 - `normal`: header
 - `showcase`: portrait cover
 - `hero`: hero image

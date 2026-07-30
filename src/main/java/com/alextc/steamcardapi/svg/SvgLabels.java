@@ -144,7 +144,7 @@ public record SvgLabels(
                     "Cover not found",
                     "No public recent game data",
                     "No game available",
-                    "In-game",
+                    "IN-GAME",
                     "ONLINE",
                     "OFFLINE",
                     "Steam game card for %s",

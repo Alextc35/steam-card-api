@@ -52,6 +52,18 @@ class SteamProfileCardRendererTest {
     }
 
     @Test
+    void compactLayoutUsesWideFittedGameThumbnail() {
+        String svg = renderer.render(TestFixtures.cardData(SvgLayout.COMPACT, SvgTheme.GITHUB_DARK));
+
+        assertThat(svg)
+                .contains("<rect x=\"344\" y=\"28\" width=\"130\" height=\"74\" rx=\"12\"")
+                .contains("<clipPath id=\"")
+                .contains("\"><rect x=\"344\" y=\"28\" width=\"130\" height=\"74\" rx=\"12\"/></clipPath>")
+                .contains("preserveAspectRatio=\"xMidYMid meet\"")
+                .doesNotContain("x=\"376\" y=\"24\" width=\"88\" height=\"88\"");
+    }
+
+    @Test
     void truncatesLongNamesAndCanRenderFallbackSvg() {
         SteamCardData data = TestFixtures.cardData(SvgLayout.COMPACT, SvgTheme.STEAM,
                 TestFixtures.game(730, "Counter-Strike 2 Competitive Premier Legacy Edition", 600, false));
@@ -71,7 +83,7 @@ class SteamProfileCardRendererTest {
         SteamCardData offline = withStatus(online, "Offline", false);
 
         assertThat(renderer.render(playing))
-                .contains(">In-game<")
+                .contains(">IN-GAME<")
                 .contains(">Currently playing<")
                 .contains("#90ba3c");
         assertThat(renderer.render(online))
@@ -137,7 +149,7 @@ class SteamProfileCardRendererTest {
                 .contains("y=\"39\" width=\"26\" height=\"18\"")
                 .doesNotContain("y=\"71\" width=\"26\" height=\"18\"");
         assertThat(renderer.render(TestFixtures.cardData(SvgLayout.MINIMAL, SvgTheme.GITHUB_DARK)))
-                .contains("y=\"30\" width=\"26\" height=\"18\"")
+                .contains("y=\"31\" width=\"26\" height=\"18\"")
                 .doesNotContain("y=\"62\" width=\"26\" height=\"18\"");
     }
 
@@ -256,19 +268,19 @@ class SteamProfileCardRendererTest {
 
         assertThat(onlineSvg)
                 .contains("<a href=\"https://alextc.es\"")
-                .doesNotContain("<text x=\"116\" y=\"112\"")
+                .doesNotContain("<text x=\"126\" y=\"126\"")
                 .doesNotContain("https://store.steampowered.com/app/730")
                 .doesNotContain("Last session");
         assertThat(offlineSvg)
                 .contains("<a href=\"https://alextc.es\"")
                 .contains("Last session Mar 9, 2024")
-                .contains("<text x=\"116\" y=\"98\" font-size=\"10\"")
-                .doesNotContain("<text x=\"116\" y=\"112\"")
+                .contains("<text x=\"126\" y=\"104\" font-size=\"11\"")
+                .doesNotContain("<text x=\"126\" y=\"126\"")
                 .doesNotContain("https://store.steampowered.com/app/730");
         assertThat(playingSvg)
                 .contains("<a href=\"https://alextc.es\"")
-                .contains(">In-game<")
-                .containsPattern("(?s)<a href=\"https://store\\.steampowered\\.com/app/730\"[^>]*>\\s*<text x=\"116\" y=\"112\"")
+                .contains(">IN-GAME<")
+                .containsPattern("(?s)<a href=\"https://store\\.steampowered\\.com/app/730\"[^>]*>\\s*<text x=\"126\" y=\"126\"")
                 .contains("Counter &lt;Strike&gt; 2")
                 .doesNotContain("Last session");
     }
@@ -303,12 +315,12 @@ class SteamProfileCardRendererTest {
                 .contains(">Jugando ahora<")
                 .contains(">EN JUEGO<")
                 .doesNotContain(">Currently playing<")
-                .doesNotContain(">In-game<");
+                .doesNotContain(">IN-GAME<");
         assertThat(offlineSvg)
                 .contains("Última sesión")
                 .contains("2024")
                 .contains(">DESCONECTADO<")
-                .contains("<rect x=\"116\" y=\"60\" width=\"119\" height=\"22\"")
+                .contains("<rect x=\"126\" y=\"62\" width=\"128\" height=\"24\"")
                 .doesNotContain("Last session")
                 .doesNotContain(">OFFLINE<");
     }

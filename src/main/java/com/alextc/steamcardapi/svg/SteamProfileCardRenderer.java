@@ -57,7 +57,7 @@ public class SteamProfileCardRenderer {
                   %s
                   <defs>
                     <clipPath id="%s-avatar"><circle cx="72" cy="72" r="46"/></clipPath>
-                    <clipPath id="%s-game"><rect x="376" y="24" width="88" height="88" rx="12"/></clipPath>
+                    <clipPath id="%s-game"><rect x="344" y="28" width="130" height="74" rx="12"/></clipPath>
                   </defs>
                   %s
                   %s
@@ -76,7 +76,7 @@ public class SteamProfileCardRenderer {
                 title(data, id, labels), desc(data, id, labels), id, id,
                 frame(500, 170, data.border(), palette),
                 avatar(data, id, 26, 26, 92, 92),
-                primaryImage(data, palette, 376, 24, 88, 88, id + "-game"),
+                compactPrimaryImage(data, palette, 344, 28, 130, 74, id + "-game"),
                 profileName(data, 140, 46, 24, 23, palette.primaryText()),
                 statusBadge(data, labels, 140, 61, 88),
                 countryBadgeAfterName(data, palette, 140, 28, 24, 23, 338),
@@ -244,7 +244,7 @@ public class SteamProfileCardRenderer {
                 <svg xmlns="http://www.w3.org/2000/svg" width="500" height="150" viewBox="0 0 500 150" role="img" aria-labelledby="%s-title %s-desc">
                   %s
                   %s
-                  <defs><clipPath id="%s-avatar"><circle cx="61" cy="61" r="34"/></clipPath></defs>
+                  <defs><clipPath id="%s-avatar"><circle cx="64" cy="64" r="40"/></clipPath></defs>
                   %s
                   %s
                   %s
@@ -255,11 +255,11 @@ public class SteamProfileCardRenderer {
                   %s
                 </svg>
                 """.formatted(id, id, title(data, id, labels), desc(data, id, labels), id,
-                frame(500, 150, data.border(), palette), avatar(data, id, 27, 27, 68, 68),
-                profileName(data, 116, 48, 23, 25, palette.primaryText()),
-                statusBadge(data, labels, 116, 60, 88),
-                countryBadgeAfterName(data, palette, 116, 30, 23, 25, 460),
-                lastSessionUnderStatus(data, labels, palette, 116, 98),
+                frame(500, 150, data.border(), palette), avatar(data, id, 24, 24, 80, 80),
+                profileName(data, 126, 50, 26, 24, palette.primaryText()),
+                statusBadge(data, labels, 126, 62, 96, 24, 11),
+                countryBadgeAfterName(data, palette, 126, 31, 26, 24, 462),
+                lastSessionUnderStatus(data, labels, palette, 126, 104, 11),
                 minimalGameTitle(data, labels, palette),
                 footerLink(500, 138, palette));
     }
@@ -298,6 +298,25 @@ public class SteamProfileCardRenderer {
             image = gameImagePlaceholder(data, palette, x, y, width, height, clipPathId);
         }
         return gameStoreLink(data, image);
+    }
+
+    private String compactPrimaryImage(
+            SteamCardData data,
+            SvgTheme.Palette palette,
+            int x,
+            int y,
+            int width,
+            int height,
+            String clipPathId
+    ) {
+        String image = SvgImageUtils.fittedImage(data.renderedPrimaryImageUrl(), x, y, width, height, clipPathId);
+        if (image.isBlank()) {
+            image = gameImagePlaceholder(data, palette, x, y, width, height, clipPathId);
+        }
+        return """
+                <rect x="%d" y="%d" width="%d" height="%d" rx="12" fill="%s"/>
+                %s
+                """.formatted(x, y, width, height, palette.panel(), gameStoreLink(data, image));
     }
 
     private String gameImagePlaceholder(SteamCardData data, SvgTheme.Palette palette, int x, int y, int width, int height, String clipPathId) {
@@ -351,7 +370,7 @@ public class SteamProfileCardRenderer {
     }
 
     private String minimalGameTitle(SteamCardData data, SvgLabels labels, SvgTheme.Palette palette) {
-        return isPlaying(data) ? gameTitle(data, labels, 116, 112, 18, 34, palette.primaryText()) : "";
+        return isPlaying(data) ? gameTitle(data, labels, 126, 126, 20, 31, palette.primaryText()) : "";
     }
 
     private String profileLink(SteamCardData data, String content) {
@@ -379,18 +398,25 @@ public class SteamProfileCardRenderer {
     }
 
     private String statusBadge(SteamCardData data, SvgLabels labels, int x, int y, int width) {
+        return statusBadge(data, labels, x, y, width, 22, 10);
+    }
+
+    private String statusBadge(SteamCardData data, SvgLabels labels, int x, int y, int width, int height, int fontSize) {
         boolean playing = isPlaying(data);
         boolean online = isOnline(data);
         String fill = playing ? STEAM_IN_GAME_GREEN : online ? STEAM_ONLINE_BLUE : offlineColor();
         String label = labels.status(playing, online);
-        int badgeWidth = Math.max(width, estimatedTextWidth(label, 10) + 52);
+        int radius = height / 2;
+        int badgeWidth = Math.max(width, estimatedTextWidth(label, fontSize) + height + 30);
         return """
                 <g>
-                  <rect x="%d" y="%d" width="%d" height="22" rx="11" fill="%s"/>
-                  <circle cx="%d" cy="%d" r="4" fill="#ffffff" opacity="0.9"/>
-                  <text x="%d" y="%d" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">%s</text>
+                  <rect x="%d" y="%d" width="%d" height="%d" rx="%d" fill="%s"/>
+                  <circle cx="%d" cy="%d" r="%d" fill="#ffffff" opacity="0.9"/>
+                  <text x="%d" y="%d" text-anchor="middle" font-size="%d" font-weight="700" fill="#ffffff">%s</text>
                 </g>
-                """.formatted(x, y, badgeWidth, fill, x + 14, y + 11, x + badgeWidth / 2 + 7, y + 15, label);
+                """.formatted(x, y, badgeWidth, height, radius, fill,
+                x + radius + 3, y + radius, Math.max(4, height / 5),
+                x + badgeWidth / 2 + 7, y + radius + fontSize / 2 - 1, fontSize, label);
     }
 
     private String countryBadge(SteamCardData data, SvgTheme.Palette palette, int x, int y) {
@@ -436,12 +462,17 @@ public class SteamProfileCardRenderer {
     }
 
     private String lastSessionUnderStatus(SteamCardData data, SvgLabels labels, SvgTheme.Palette palette, int x, int y) {
+        return lastSessionUnderStatus(data, labels, palette, x, y, 10);
+    }
+
+    private String lastSessionUnderStatus(SteamCardData data, SvgLabels labels, SvgTheme.Palette palette,
+            int x, int y, int fontSize) {
         String lastSession = lastSession(data, labels);
         if (lastSession.isBlank()) {
             return "";
         }
-        return "<text x=\"%d\" y=\"%d\" font-size=\"10\" fill=\"%s\">%s</text>"
-                .formatted(x, y, palette.mutedText(), SvgTextUtils.escape(lastSession));
+        return "<text x=\"%d\" y=\"%d\" font-size=\"%d\" fill=\"%s\">%s</text>"
+                .formatted(x, y, fontSize, palette.mutedText(), SvgTextUtils.escape(lastSession));
     }
 
     private String releaseDate(SteamGame game) {
