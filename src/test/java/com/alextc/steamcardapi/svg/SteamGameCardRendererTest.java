@@ -26,6 +26,9 @@ class SteamGameCardRendererTest {
         assertThat(svg).contains("Free to play");
         assertThat(svg).contains(game.images().portraitCoverUrl());
         assertThat(svg).contains("<clipPath");
+        assertThat(svg)
+                .containsPattern("(?s)<a href=\"https://store\\.steampowered\\.com/app/730\"[^>]*>\\s*<image")
+                .containsPattern("(?s)<a href=\"https://store\\.steampowered\\.com/app/730\"[^>]*>\\s*<text x=\"220\" y=\"112\"");
         assertThat(svg).doesNotContain("Steam Card API");
     }
 
@@ -40,6 +43,10 @@ class SteamGameCardRendererTest {
         assertThat(svg).contains("height=\"270\"");
         assertThat(svg).contains("opacity=\"0.78\"");
         assertThat(svg).contains("preserveAspectRatio=\"xMidYMid slice\"");
+        assertThat(svg)
+                .containsOnlyOnce("https://store.steampowered.com/app/730")
+                .containsPattern("(?s)<a href=\"https://store\\.steampowered\\.com/app/730\"[^>]*>\\s*<text x=\"42\" y=\"112\"")
+                .doesNotContainPattern("(?s)<a href=\"https://store\\.steampowered\\.com/app/730\"[^>]*>\\s*<image");
     }
 
     @Test

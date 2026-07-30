@@ -24,10 +24,16 @@ public class SteamGameCardRenderer {
         String image = layout == SvgLayout.HERO
                 ? SvgImageUtils.image(renderedImageUrl, 0, 0, width, height, id + "-bg")
                 : SvgImageUtils.image(renderedImageUrl, 28, 28, 156, Math.min(234, height - 56), id + "-cover");
+        if (layout != SvgLayout.HERO) {
+            image = gameStoreLink(game, image);
+        }
         String overlay = layout == SvgLayout.HERO
                 ? "<rect width=\"%d\" height=\"%d\" rx=\"%d\" fill=\"%s\" opacity=\"0.78\"/>".formatted(width, height, radius, palette.background())
                 : "";
         int textX = layout == SvgLayout.HERO ? 42 : 220;
+        String gameTitle = gameStoreLink(game, """
+                <text x="%d" y="112" font-size="32" font-weight="700" fill="%s">%s</text>
+                """.formatted(textX, palette.primaryText(), SvgTextUtils.escape(SvgTextUtils.truncate(game.name(), 32))));
         return """
                 <svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 %d %d" role="img" aria-labelledby="%s-title %s-desc">
                   <title id="%s-title">%s</title>
@@ -40,7 +46,7 @@ public class SteamGameCardRenderer {
                   %s
                   %s
                   <text x="%d" y="72" font-size="14" font-weight="700" fill="%s">%s · AppID %d</text>
-                  <text x="%d" y="112" font-size="32" font-weight="700" fill="%s">%s</text>
+                  %s
                   <text x="%d" y="145" font-size="15" fill="%s">%s</text>
                   <text x="%d" y="178" font-size="14" fill="%s">%s</text>
                 </svg>
@@ -52,7 +58,7 @@ public class SteamGameCardRenderer {
                 image,
                 overlay,
                 textX, palette.accent(), labels.steamGame(), game.appId(),
-                textX, palette.primaryText(), SvgTextUtils.escape(SvgTextUtils.truncate(game.name(), 32)),
+                gameTitle,
                 textX, palette.secondaryText(), SvgTextUtils.escape(SvgTextUtils.truncate(description(game, labels), 62)),
                 textX, palette.mutedText(), meta(game, labels));
     }
@@ -71,5 +77,16 @@ public class SteamGameCardRenderer {
         String price = game.freeToPlay() ? labels.freeToPlay() : game.price() == null ? labels.priceUnavailable() : game.price();
         String release = game.releaseDate() == null ? labels.releaseUnavailable() : game.releaseDate();
         return "%s · %s".formatted(price, release);
+    }
+
+    private String gameStoreLink(SteamGame game, String content) {
+        if (game.appId() == null || content == null || content.isBlank()) {
+            return content;
+        }
+        return """
+                <a href="https://store.steampowered.com/app/%d" target="_blank" rel="noopener noreferrer">
+                  %s
+                </a>
+                """.formatted(game.appId(), content);
     }
 }

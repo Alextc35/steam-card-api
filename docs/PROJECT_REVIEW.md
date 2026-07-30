@@ -11,7 +11,7 @@ Steam Card API is in a strong release-candidate state for personal use and publi
 - Docker development and production flows are present.
 - SVG responses include cache headers, ETags, and `nosniff`.
 - Image embedding is constrained to official Steam hosts and bounded by size/content-type checks.
-- Profile cards include Steam-style status badges, 100 inline SVG country flags, profile links, footer link, game-store cover/title links, fitted compact thumbnails, localizable SVG labels, and no-game placeholders.
+- Profile and game cards include Steam Store links on titles and suitable artwork, while profile cards also include Steam-style status badges, 100 inline SVG country flags, profile links, footer link, fitted compact thumbnails, localizable SVG labels, and no-game placeholders.
 
 ## Refactors Completed In This Pass
 
@@ -25,6 +25,7 @@ Steam Card API is in a strong release-candidate state for personal use and publi
 - Added `CountryFlagRenderer` for the supported top 100 Steam country codes.
 - Added game-cover links to Steam Store app pages and local SVG placeholders for missing game artwork.
 - Added profile-name, avatar, game-title, and footer links where SVG consumers support links.
+- Added Steam Store links to standalone game card titles and cover artwork.
 - Added `SvgLabels` so `lang` localizes both Steam Store metadata and SVG-owned labels.
 - Removed the incomplete `library` SVG layout before release.
 - Removed unsupported public `show` and `animation` parameters from the documented card contract.

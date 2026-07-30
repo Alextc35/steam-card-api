@@ -15,7 +15,7 @@ It can render profile cards, game cards, and resolved Steam artwork from a Steam
 - Dynamic SVG profile cards with avatar, current or recent game, Steam artwork, and safe fallbacks.
 - Steam-like status badges: blue online, green in-game, red offline.
 - Linked profile avatar and profile name in SVG cards when Steam provides a profile URL.
-- Linked game artwork in profile SVG cards when Steam provides a game AppID.
+- Linked game artwork and titles in SVG cards when Steam provides a game AppID.
 - Compact profile cards fit wide game thumbnails without cropping important artwork.
 - Inline SVG country flag badges for the top 100 Steam country codes, with ISO text fallback.
 - Game JSON and game SVG cards based on Steam Store metadata and deterministic Steam image URLs.
@@ -219,6 +219,8 @@ The response contains internal game data, Store metadata where available, platfo
 curl "http://localhost:8080/api/steam/game/730/card.svg?layout=showcase"
 curl "http://localhost:8080/api/steam/game/730/card.svg?layout=hero&gameImage=hero"
 ```
+
+Game SVG card titles link to `https://store.steampowered.com/app/{appId}`. Layouts with a cover image link the cover too; hero backgrounds remain visual only.
 
 ### Resolved Cover
 
